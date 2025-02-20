@@ -9,9 +9,16 @@ import ipywidgets as widgets
 from IPython.display import display
 import re
 
-# Cargar archivo directamente desde la ruta especificada
-ruta_archivo = "C:\\Users\\ry16123\\OneDrive - YPF\\Escritorio\\DATOS ML\\Cronograma Pulling3.xlsx"
-df = pd.read_excel(ruta_archivo)
+# 🏗️ Crear la interfaz en Streamlit
+st.title("CronoPU - Análisis de Pulling 🚛")
+
+# 📌 Permitir que el usuario suba el archivo Excel
+uploaded_file = st.file_uploader("📂 Subí el archivo Excel con el cronograma", type=["xlsx"])
+
+if uploaded_file is not None:
+    # 📌 Cargar el archivo Excel subido por el usuario
+    df = pd.read_excel(uploaded_file)
+
 
 
 
