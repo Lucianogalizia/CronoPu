@@ -6,3 +6,4 @@ folium
 geopy
 ipywidgets
 ipython
+streamlit
