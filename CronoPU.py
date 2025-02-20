@@ -8,6 +8,8 @@ from geopy.distance import geodesic
 import ipywidgets as widgets
 from IPython.display import display
 import re
+import streamlit as st  # 🔹 Importar Streamlit
+
 
 # 🏗️ Crear la interfaz en Streamlit
 st.title("CronoPU - Análisis de Pulling 🚛")
