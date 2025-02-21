@@ -43,15 +43,30 @@ if uploaded_file is not None:
                 st.write("✅ Archivo cargado con éxito:")
                 st.write(df.head())  # Muestra las primeras filas
 
+                # <<-- Agrega esta línea para guardar el DataFrame en session_state -->
+                st.session_state.df = df
+
     except Exception as e:
         st.error(f"❌ Error al procesar el archivo: {e}")
 else:
     st.warning("⚠️ Esperando que subas un archivo Excel para analizar.")
 
 
-# 🔍 Limpieza y conversión optimizada
-for col in ["NETA [M3/D]", "GEO_LATITUDE", "GEO_LONGITUDE", "TIEMPO PLANIFICADO"]:
-    df[col] = pd.to_numeric(df[col].astype(str).str.replace(",", "."), errors='coerce')
+# Opcional: Si deseas asegurarte de que el DataFrame esté en session_state antes de usarlo,
+# podrías agregar un condicional. Por ejemplo:
+if 'df' not in st.session_state:
+    st.error("No se ha cargado ningún archivo. Por favor, subí un archivo Excel para continuar.")
+else:
+    # 🔍 Limpieza y conversión optimizada (si es necesario volver a limpiar)
+    for col in ["NETA [M3/D]", "GEO_LATITUDE", "GEO_LONGITUDE", "TIEMPO PLANIFICADO"]:
+        st.session_state.df[col] = pd.to_numeric(st.session_state.df[col].astype(str).str.replace(",", "."), errors='coerce')
+    st.session_state.df.dropna(inplace=True)  # Eliminar valores nulos
+
+    # 🔹 Función para ordenar correctamente nombres con números y letras
+    import re
+    def natural_sort_key(s):
+        """ Ordena alfabéticamente considerando números y letras correctamente """
+        return [int(text) if text.isdigit() else text.lower() for text in re.split(r'(\d+)', s)]
 
 df.dropna(inplace=True)  # Eliminar valores nulos
 
