@@ -18,9 +18,27 @@ st.title("CronoPU - Análisis de Pulling 🚛")
 uploaded_file = st.file_uploader("📂 Subí el archivo Excel con el cronograma", type=["xlsx"])
 
 if uploaded_file is not None:
-    # 📌 Cargar el archivo Excel subido por el usuario
+    # ✅ Cargar el archivo Excel subido por el usuario
     df = pd.read_excel(uploaded_file)
 
+    # 🔍 Verificar si tiene las columnas necesarias
+    required_columns = ["NETA [M3/D]", "GEO_LATITUDE", "GEO_LONGITUDE", "TIEMPO PLANIFICADO"]
+    if all(col in df.columns for col in required_columns):
+
+        # 🔍 Limpieza y conversión optimizada
+        for col in required_columns:
+            df[col] = pd.to_numeric(df[col].astype(str).str.replace(",", "."), errors='coerce')
+
+        df.dropna(inplace=True)  # Eliminar valores nulos
+
+        # 📊 Mostrar los primeros datos
+        st.write("✅ Archivo cargado con éxito:")
+        st.write(df.head())  # Muestra las primeras filas
+
+    else:
+        st.error("❌ El archivo no tiene las columnas necesarias. Revisá el formato.")
+else:
+    st.warning("⚠️ Esperando que subas un archivo Excel para analizar.")
 
 
 
