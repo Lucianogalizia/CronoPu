@@ -159,7 +159,7 @@ if st.session_state.pulling_data is not None:
         if hs_submitted:
             st.session_state.hs_disponibilidad = hs_disponibilidad
             st.success("HS Disponibilidad confirmada.")
-
+            ejecutar_proceso()
 
 # === 4. EJECUCIÓN DEL PROCESO DE ASIGNACIÓN ===
 def ejecutar_proceso():
@@ -260,7 +260,3 @@ def ejecutar_proceso():
     st.success("Proceso de asignación completado.")
     st.dataframe(df_prioridad)
     
-# Llamamos a la función (solo si pulling_data no es None)
-if st.session_state.pulling_data is not None:
-    ejecutar_proceso()
-
