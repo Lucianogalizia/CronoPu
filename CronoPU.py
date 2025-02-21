@@ -11,56 +11,80 @@ import re
 import streamlit as st  # 🔹 Importar Streamlit
 
 
-# 🏗️ Crear la interfaz en Streamlit
 st.title("CronoPU - Análisis de Pulling 🚛")
 
-# 📌 Permitir que el usuario suba el archivo Excel
+# ──────────────────────────────────────────
+# 1. Subir archivo Excel
+# ──────────────────────────────────────────
 uploaded_file = st.file_uploader("📂 Subí el archivo Excel con el cronograma", type=["xlsx"])
 
-if uploaded_file is not None:
-    try:
-        # ✅ Cargar el archivo Excel subido por el usuario
-        df = pd.read_excel(uploaded_file)
-
-        # 🔍 Verificar si el archivo tiene datos
-        if df.empty:
-            st.error("❌ El archivo está vacío. Subí un archivo válido.")
-        else:
-            # 🔍 Verificar si tiene las columnas necesarias
-            required_columns = ["NETA [M3/D]", "GEO_LATITUDE", "GEO_LONGITUDE", "TIEMPO PLANIFICADO"]
-            missing_cols = [col for col in required_columns if col not in df.columns]
-
-            if missing_cols:
-                st.error(f"❌ Faltan las siguientes columnas en el archivo: {', '.join(missing_cols)}")
-            else:
-                # 🔍 Limpieza y conversión optimizada
-                for col in required_columns:
-                    df[col] = pd.to_numeric(df[col].astype(str).str.replace(",", "."), errors='coerce')
-
-                df.dropna(inplace=True)  # Eliminar valores nulos
-
-                # 📊 Mostrar los primeros datos
-                st.write("✅ Archivo cargado con éxito:")
-                st.write(df.head())  # Muestra las primeras filas
-
-                # <<-- Agrega esta línea para guardar el DataFrame en session_state -->
-                st.session_state.df = df
-
-    except Exception as e:
-        st.error(f"❌ Error al procesar el archivo: {e}")
-else:
+if not uploaded_file:
+    # Si no se ha subido archivo, mostramos aviso y detenemos la app
     st.warning("⚠️ Esperando que subas un archivo Excel para analizar.")
+    st.stop()
 
+# ──────────────────────────────────────────
+# 2. Intentar cargar el archivo
+# ──────────────────────────────────────────
+try:
+    df = pd.read_excel(uploaded_file)
+    if df.empty:
+        st.error("❌ El archivo está vacío. Subí un archivo válido.")
+        st.stop()
+except Exception as e:
+    st.error(f"❌ Error al procesar el archivo: {e}")
+    st.stop()
 
-# Opcional: Si deseas asegurarte de que el DataFrame esté en session_state antes de usarlo,
-# podrías agregar un condicional. Por ejemplo:
-if 'df' not in st.session_state:
-    st.error("No se ha cargado ningún archivo. Por favor, subí un archivo Excel para continuar.")
-else:
-    # 🔍 Limpieza y conversión optimizada (si es necesario volver a limpiar)
-    for col in ["NETA [M3/D]", "GEO_LATITUDE", "GEO_LONGITUDE", "TIEMPO PLANIFICADO"]:
-        st.session_state.df[col] = pd.to_numeric(st.session_state.df[col].astype(str).str.replace(",", "."), errors='coerce')
-    st.session_state.df.dropna(inplace=True)  # Eliminar valores nulos
+# ──────────────────────────────────────────
+# 3. Validar columnas requeridas
+# ──────────────────────────────────────────
+required_columns = [
+    "NETA [M3/D]",
+    "GEO_LATITUDE",
+    "GEO_LONGITUDE",
+    "TIEMPO PLANIFICADO",
+    "ZONA",
+    "POZO"
+]
+missing_cols = [col for col in required_columns if col not in df.columns]
+if missing_cols:
+    st.error(f"❌ Faltan las siguientes columnas en el archivo: {', '.join(missing_cols)}")
+    st.stop()
+
+# ──────────────────────────────────────────
+# 4. Limpieza y conversión de datos
+# ──────────────────────────────────────────
+for col in required_columns:
+    df[col] = pd.to_numeric(df[col].astype(str).str.replace(",", "."), errors='coerce')
+df.dropna(inplace=True)
+
+# Guardar el DataFrame en session_state
+st.session_state.df = df
+
+# Mostrar una vista previa
+st.success("✅ Archivo cargado con éxito")
+st.write(df.head())
+
+# ──────────────────────────────────────────
+# 5. Sección de Filtrado de Zonas y Pulling
+# ──────────────────────────────────────────
+st.header("1. Filtrado de Zonas y Selección de Pulling")
+
+zonas_disponibles = df["ZONA"].unique().tolist()
+zonas_seleccionadas = st.multiselect("Selecciona las zonas:", options=zonas_disponibles)
+
+pulling_count = st.slider("Número de Pulling:", min_value=1, max_value=10, value=3)
+
+if st.button("Filtrar Zonas"):
+    if not zonas_seleccionadas:
+        st.error("❌ Debes seleccionar al menos una zona.")
+    else:
+        df_filtrado = df[df["ZONA"].isin(zonas_seleccionadas)].copy()
+        st.session_state.df_filtrado = df_filtrado
+        pozos = df_filtrado["POZO"].unique().tolist()
+        st.session_state.pozos_disponibles = sorted(pozos)
+        st.success(f"Zonas seleccionadas: {', '.join(zonas_seleccionadas)}")
+        st.write(df_filtrado.head())
 
     # 🔹 Función para ordenar correctamente nombres con números y letras
     import re
