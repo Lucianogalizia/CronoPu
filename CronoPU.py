@@ -71,8 +71,8 @@ st.session_state.df = df
 st.header("1. Filtrado de Zonas y Selección de Pulling")
     # Aquí continúa el resto de la lógica...
     # Selección de zonas disponibles
- zonas_disponibles = st.session_state.df["ZONA"].unique().tolist()
- zonas_seleccionadas = st.multiselect("Selecciona las zonas:", options=zonas_disponibles)
+zonas_disponibles = st.session_state.df["ZONA"].unique().tolist()
+zonas_seleccionadas = st.multiselect("Selecciona las zonas:", options=zonas_disponibles)
  
 # Selección de cantidad de Pulling
 pulling_count = st.slider("Número de Pulling:", min_value=1, max_value=10, value=3)
