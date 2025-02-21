@@ -244,5 +244,6 @@ def ejecutar_proceso():
     st.session_state.df_prioridad = df_prioridad
     st.success("Proceso de asignación completado.")
     st.dataframe(df_prioridad)
+    ejecutar_proceso()
 
 
