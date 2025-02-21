@@ -145,7 +145,7 @@ if st.session_state.pulling_data is not None:
         if hs_submitted:
             st.session_state.hs_disponibilidad = hs_disponibilidad
             st.success("HS Disponibilidad confirmada.")
-            ejecutar_proceso()
+            
 # === 4. EJECUCIÓN DEL PROCESO DE ASIGNACIÓN ===
 def ejecutar_proceso():
     """Función que ejecuta la asignación de pozos y genera la matriz de prioridad."""
