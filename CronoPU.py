@@ -89,17 +89,6 @@ if st.button("Filtrar Zonas"):
         st.session_state.pozos_disponibles = sorted(pozos)
         st.success(f"Zonas seleccionadas: {', '.join(zonas_seleccionadas)}")
 
-# Aquí podrías agregar un botón para filtrar y guardar en st.session_state.df_filtrado, por ejemplo:
-    if st.button("Filtrar Zonas"):
-        if not zonas_seleccionadas:
-            st.error("❌ Debes seleccionar al menos una zona.")
-        else:
-            df_filtrado = st.session_state.df[st.session_state.df["ZONA"].isin(zonas_seleccionadas)].copy()
-            st.session_state.df_filtrado = df_filtrado  # Guardamos el DataFrame filtrado
-            st.success(f"Zonas seleccionadas: {', '.join(zonas_seleccionadas)}")
-else:
-    st.info("Por favor, subí y procesa un archivo Excel para continuar.")
-
 # === 2. SELECCIÓN DE PULLING (POZOS Y TIEMPO RESTANTE) ===
 if st.session_state.df_filtrado is not None:
     st.header("2. Selección de Pozos para Pulling")
