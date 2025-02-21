@@ -76,11 +76,14 @@ def natural_sort_key(s):
     return [int(text) if text.isdigit() else text.lower() for text in re.split(r'(\d+)', s)]
 
 # === 1. FILTRO POR ZONA Y SELECCIÓN DE N° PULLING ===
-st.header("1. Filtrado de Zonas y Selección de Pulling")
-
-# Selección de zonas disponibles
-zonas_disponibles = st.session_state.df["ZONA"].unique().tolist()
-zonas_seleccionadas = st.multiselect("Selecciona las zonas:", options=zonas_disponibles)
+if 'df' in st.session_state:
+    st.header("1. Filtrado de Zonas y Selección de Pulling")
+    
+    # Selección de zonas disponibles
+    zonas_disponibles = st.session_state.df["ZONA"].unique().tolist()
+    zonas_seleccionadas = st.multiselect("Selecciona las zonas:", options=zonas_disponibles)
+else:
+    st.info("Por favor, subí y procesá el archivo Excel para continuar.")
 
 # Selección de cantidad de Pulling
 pulling_count = st.slider("Número de Pulling:", min_value=1, max_value=10, value=3)
