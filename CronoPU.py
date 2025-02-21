@@ -250,5 +250,7 @@ def ejecutar_proceso():
     st.success("Proceso de asignación completado.")
     st.dataframe(df_prioridad)
     
-
+# Llamamos a la función (solo si pulling_data no es None)
+if st.session_state.pulling_data is not None:
+    ejecutar_proceso()
 
