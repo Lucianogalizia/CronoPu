@@ -128,7 +128,6 @@ if st.session_state.df_filtrado is not None:
             st.success("Selección de Pulling confirmada.")
  
 # === 3. INGRESO DE HS DISPONIBILIDAD ===
-# === 3. INGRESO DE HS DISPONIBILIDAD ===
 if st.session_state.pulling_data is not None:
     st.header("3. Ingreso de HS Disponibilidad de Equipo")
     
@@ -151,8 +150,6 @@ if st.session_state.pulling_data is not None:
             st.session_state.hs_disponibilidad = hs_disponibilidad
             st.success("HS Disponibilidad confirmada.")
 
-# La llamada debe estar sin indentación extra:
-ejecutar_proceso()
 
 # === 4. EJECUCIÓN DEL PROCESO DE ASIGNACIÓN ===
 def ejecutar_proceso():
