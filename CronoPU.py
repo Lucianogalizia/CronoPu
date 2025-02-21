@@ -159,102 +159,106 @@ if st.session_state.pulling_data is not None:
         if hs_submitted:
             st.session_state.hs_disponibilidad = hs_disponibilidad
             st.success("HS Disponibilidad confirmada.")
-            ejecutar_proceso()
-
+            
 # === 4. EJECUCIÓN DEL PROCESO DE ASIGNACIÓN ===
-def ejecutar_proceso():
-    """Función que ejecuta la asignación de pozos y genera la matriz de prioridad."""
-    matriz_prioridad = []
-    pozos_ocupados = set()
-    pulling_lista = list(st.session_state.pulling_data.items())
-    
-    # Función que calcula el coeficiente y la distancia entre dos pozos
-    def calcular_coeficiente(pozo_referencia, pozo_candidato):
-        hs_disp_equipo = st.session_state.hs_disponibilidad.get(pozo_candidato, 0)
-        # Obtener coordenadas de ambos pozos (usando el DataFrame original)
-        registro_ref = st.session_state.df.loc[st.session_state.df["POZO"] == pozo_referencia].iloc[0]
-        registro_cand = st.session_state.df.loc[st.session_state.df["POZO"] == pozo_candidato].iloc[0]
-        distancia = geodesic(
-            (registro_ref["GEO_LATITUDE"], registro_ref["GEO_LONGITUDE"]),
-            (registro_cand["GEO_LATITUDE"], registro_cand["GEO_LONGITUDE"])
-        ).kilometers
-        neta = registro_cand["NETA [M3/D]"]
-        hs_planificadas = registro_cand["TIEMPO PLANIFICADO"]
-        coeficiente = neta / (hs_planificadas + (distancia * 0.5))
-        return coeficiente, distancia
-    
-    # Función para asignar pozos adicionales a cada pulling
-    def asignar_pozos(pulling_asignaciones, nivel):
-        no_asignados = [p for p in st.session_state.pozos_disponibles if p not in pozos_ocupados]
-        for pulling, data in pulling_lista:
-            # Para el primer candidato se usa el pozo actual o el último asignado
-            pozo_referencia = pulling_asignaciones[pulling][-1][0] if pulling_asignaciones[pulling] else data["pozo"]
-            # Seleccionar candidatos que cumplan la condición de disponibilidad de HS
-            candidatos = []
-            for pozo in no_asignados:
-                # Sumar los tiempos planificados de los pozos ya asignados en este pulling
-                tiempo_acumulado = sum(
-                    st.session_state.df.loc[st.session_state.df["POZO"] == p[0], "TIEMPO PLANIFICADO"].iloc[0]
-                    for p in pulling_asignaciones[pulling]
-                )
-                # Condición: la disponibilidad de HS debe ser menor o igual al tiempo restante + tiempo acumulado
-                if st.session_state.hs_disponibilidad.get(pozo, 0) <= (data["tiempo_restante"] + tiempo_acumulado):
-                    coef, dist = calcular_coeficiente(pozo_referencia, pozo)
-                    candidatos.append((pozo, coef, dist))
-            # Ordenar candidatos: mayor coeficiente y menor distancia
-            candidatos.sort(key=lambda x: (-x[1], x[2]))
-            if candidatos:
-                mejor_candidato = candidatos[0]
-                pulling_asignaciones[pulling].append(mejor_candidato)
-                pozos_ocupados.add(mejor_candidato[0])
-                if mejor_candidato[0] in no_asignados:
-                    no_asignados.remove(mejor_candidato[0])
-            else:
-                st.warning(f"⚠️ No hay pozos disponibles para asignar como {nivel} en {pulling}.")
-        return pulling_asignaciones
- 
-    # Inicializar asignaciones para cada pulling
-    pulling_asignaciones = {pulling: [] for pulling, _ in pulling_lista}
-    # Se asignan tres rondas (N+1, N+2, N+3)
-    pulling_asignaciones = asignar_pozos(pulling_asignaciones, "N+1")
-    pulling_asignaciones = asignar_pozos(pulling_asignaciones, "N+2")
-    pulling_asignaciones = asignar_pozos(pulling_asignaciones, "N+3")
-    
-    # Construcción de la matriz de prioridad
-    for pulling, data in pulling_lista:
-        pozo_actual = data["pozo"]
-        registro_actual = st.session_state.df.loc[st.session_state.df["POZO"] == pozo_actual].iloc[0]
-        neta_actual = registro_actual["NETA [M3/D]"]
-        tiempo_restante = data["tiempo_restante"]
-        # Se toman los tres primeros candidatos asignados
-        seleccionados = pulling_asignaciones.get(pulling, [])[:3]
-        # Si hay menos de tres candidatos, se agregan valores por defecto para evitar errores
-        while len(seleccionados) < 3:
-            seleccionados.append(("N/A", 1, 1))
-        
-        # Validación de tiempo planificado para el primer candidato (N+1)
-        tiempo_planificado_n1 = st.session_state.df.loc[st.session_state.df["POZO"] == seleccionados[0][0], "TIEMPO PLANIFICADO"]
-        tiempo_planificado_n1 = tiempo_planificado_n1.iloc[0] if not tiempo_planificado_n1.empty else 1
-        
-        # Cálculo de suspensión y recomendación
-        suspension = (neta_actual / seleccionados[0][1]) * (seleccionados[0][2] * 0.5 + tiempo_planificado_n1)
-        recomendacion = "Abandonar pozo actual y moverse al N+1" if (neta_actual / tiempo_restante) < suspension else "Continuar en pozo actual"
-        
-        matriz_prioridad.append([
-            pulling, pozo_actual, neta_actual, tiempo_restante,
-            seleccionados[0][0], seleccionados[0][1], seleccionados[0][2],
-            seleccionados[1][0], seleccionados[1][1], seleccionados[1][2],
-            seleccionados[2][0], seleccionados[2][1], seleccionados[2][2],
-            recomendacion
-        ])
-    
-    columns = [
-        "Pulling", "Pozo Actual", "Neta Actual", "Tiempo Restante (h)",
-        "N+1", "Coeficiente N+1", "Distancia N+1 (km)",
-        "N+2", "Coeficiente N+2", "Distancia N+2 (km)",
-        "N+3", "Coeficiente N+3", "Distancia N+3 (km)", "Recomendación"
-    ]
-    
+if st.button("Iniciar Asignación de Pozos"):
+    if "hs_disponibilidad" not in st.session_state or not st.session_state.hs_disponibilidad:
+        st.error("Debes confirmar la disponibilidad de HS antes de continuar.")
+    else:
+        def ejecutar_proceso():
+         """Función que ejecuta la asignación de pozos y genera la matriz de prioridad."""
+         matriz_prioridad = []
+         pozos_ocupados = set()
+         pulling_lista = list(st.session_state.pulling_data.items())
+         
+         # Función que calcula el coeficiente y la distancia entre dos pozos
+         def calcular_coeficiente(pozo_referencia, pozo_candidato):
+             hs_disp_equipo = st.session_state.hs_disponibilidad.get(pozo_candidato, 0)
+             # Obtener coordenadas de ambos pozos (usando el DataFrame original)
+             registro_ref = st.session_state.df.loc[st.session_state.df["POZO"] == pozo_referencia].iloc[0]
+             registro_cand = st.session_state.df.loc[st.session_state.df["POZO"] == pozo_candidato].iloc[0]
+             distancia = geodesic(
+                 (registro_ref["GEO_LATITUDE"], registro_ref["GEO_LONGITUDE"]),
+                 (registro_cand["GEO_LATITUDE"], registro_cand["GEO_LONGITUDE"])
+             ).kilometers
+             neta = registro_cand["NETA [M3/D]"]
+             hs_planificadas = registro_cand["TIEMPO PLANIFICADO"]
+             coeficiente = neta / (hs_planificadas + (distancia * 0.5))
+             return coeficiente, distancia
+         
+         # Función para asignar pozos adicionales a cada pulling
+         def asignar_pozos(pulling_asignaciones, nivel):
+             no_asignados = [p for p in st.session_state.pozos_disponibles if p not in pozos_ocupados]
+             for pulling, data in pulling_lista:
+                 # Para el primer candidato se usa el pozo actual o el último asignado
+                 pozo_referencia = pulling_asignaciones[pulling][-1][0] if pulling_asignaciones[pulling] else data["pozo"]
+                 # Seleccionar candidatos que cumplan la condición de disponibilidad de HS
+                 candidatos = []
+                 for pozo in no_asignados:
+                     # Sumar los tiempos planificados de los pozos ya asignados en este pulling
+                     tiempo_acumulado = sum(
+                         st.session_state.df.loc[st.session_state.df["POZO"] == p[0], "TIEMPO PLANIFICADO"].iloc[0]
+                         for p in pulling_asignaciones[pulling]
+                     )
+                     # Condición: la disponibilidad de HS debe ser menor o igual al tiempo restante + tiempo acumulado
+                     if st.session_state.hs_disponibilidad.get(pozo, 0) <= (data["tiempo_restante"] + tiempo_acumulado):
+                         coef, dist = calcular_coeficiente(pozo_referencia, pozo)
+                         candidatos.append((pozo, coef, dist))
+                 # Ordenar candidatos: mayor coeficiente y menor distancia
+                 candidatos.sort(key=lambda x: (-x[1], x[2]))
+                 if candidatos:
+                     mejor_candidato = candidatos[0]
+                     pulling_asignaciones[pulling].append(mejor_candidato)
+                     pozos_ocupados.add(mejor_candidato[0])
+                     if mejor_candidato[0] in no_asignados:
+                         no_asignados.remove(mejor_candidato[0])
+                 else:
+                     st.warning(f"⚠️ No hay pozos disponibles para asignar como {nivel} en {pulling}.")
+             return pulling_asignaciones
+      
+         # Inicializar asignaciones para cada pulling
+         pulling_asignaciones = {pulling: [] for pulling, _ in pulling_lista}
+         # Se asignan tres rondas (N+1, N+2, N+3)
+         pulling_asignaciones = asignar_pozos(pulling_asignaciones, "N+1")
+         pulling_asignaciones = asignar_pozos(pulling_asignaciones, "N+2")
+         pulling_asignaciones = asignar_pozos(pulling_asignaciones, "N+3")
+         
+         # Construcción de la matriz de prioridad
+         for pulling, data in pulling_lista:
+             pozo_actual = data["pozo"]
+             registro_actual = st.session_state.df.loc[st.session_state.df["POZO"] == pozo_actual].iloc[0]
+             neta_actual = registro_actual["NETA [M3/D]"]
+             tiempo_restante = data["tiempo_restante"]
+             # Se toman los tres primeros candidatos asignados
+             seleccionados = pulling_asignaciones.get(pulling, [])[:3]
+             # Si hay menos de tres candidatos, se agregan valores por defecto para evitar errores
+             while len(seleccionados) < 3:
+                 seleccionados.append(("N/A", 1, 1))
+             
+             # Validación de tiempo planificado para el primer candidato (N+1)
+             tiempo_planificado_n1 = st.session_state.df.loc[st.session_state.df["POZO"] == seleccionados[0][0], "TIEMPO PLANIFICADO"]
+             tiempo_planificado_n1 = tiempo_planificado_n1.iloc[0] if not tiempo_planificado_n1.empty else 1
+             
+             # Cálculo de suspensión y recomendación
+             suspension = (neta_actual / seleccionados[0][1]) * (seleccionados[0][2] * 0.5 + tiempo_planificado_n1)
+             recomendacion = "Abandonar pozo actual y moverse al N+1" if (neta_actual / tiempo_restante) < suspension else "Continuar en pozo actual"
+             
+             matriz_prioridad.append([
+                 pulling, pozo_actual, neta_actual, tiempo_restante,
+                 seleccionados[0][0], seleccionados[0][1], seleccionados[0][2],
+                 seleccionados[1][0], seleccionados[1][1], seleccionados[1][2],
+                 seleccionados[2][0], seleccionados[2][1], seleccionados[2][2],
+                 recomendacion
+             ])
+         
+         columns = [
+             "Pulling", "Pozo Actual", "Neta Actual", "Tiempo Restante (h)",
+             "N+1", "Coeficiente N+1", "Distancia N+1 (km)",
+             "N+2", "Coeficiente N+2", "Distancia N+2 (km)",
+             "N+3", "Coeficiente N+3", "Distancia N+3 (km)", "Recomendación"
+         ]
+    st.success("Proceso de asignación completado.")
+        ejecutar_proceso()
     df_prioridad = pd.DataFrame(matriz_prioridad, columns=columns)
     st.session_state.df_prioridad = df_prioridad
     st.success("Proceso de asignación completado.")
