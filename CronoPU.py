@@ -139,7 +139,7 @@ if zona_seleccionada:
             matriz_prioridad.append([
                 pulling, pozo_actual, neta_actual, tiempo_restante,
                 *seleccion_n1, *seleccion_n2, *seleccion_n3,
-                         
+            ])              
         
         columns = [
             "Pulling", "Pozo Actual", "Neta Actual", "Tiempo Restante (h)",
