@@ -146,13 +146,6 @@ if st.session_state.pulling_data is not None:
             st.session_state.hs_disponibilidad = hs_disponibilidad
             st.success("HS Disponibilidad confirmada.")
 
-if st.button("Iniciar Asignación de Pozos"):
-    if "hs_disponibilidad" not in st.session_state or not st.session_state.hs_disponibilidad:
-        st.error("Debes confirmar la disponibilidad de HS antes de continuar.")
-    else:
-        def ejecutar_proceso():
-            # Aquí va el código de ejecución del proceso de asignación
-            st.success("Proceso de asignación completado.")
         ejecutar_proceso()
 
 # === 4. EJECUCIÓN DEL PROCESO DE ASIGNACIÓN ===
