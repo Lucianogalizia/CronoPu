@@ -136,7 +136,7 @@ if st.session_state.df_filtrado is not None:
             todos_pozos = st.session_state.df_filtrado["POZO"].unique().tolist()
             st.session_state.pozos_disponibles = sorted([p for p in todos_pozos if p not in seleccionados])
             st.success("Selección de Pulling confirmada.")
- 
+
 # === 3. INGRESO DE HS DISPONIBILIDAD ===
 if st.session_state.pulling_data is not None:
     st.header("3. Ingreso de HS Disponibilidad de Equipo")
@@ -151,7 +151,7 @@ if st.session_state.pulling_data is not None:
                 hs_val = st.number_input(
                     f"{pozo} (HS):",
                     min_value=0.0,
-                    value=float(np.random.randint(1, 51)),
+                    value=0.0,  # Valor fijo en cero
                     key=f"hs_{pozo}"
                 )
                 hs_disponibilidad[pozo] = hs_val
@@ -159,6 +159,11 @@ if st.session_state.pulling_data is not None:
         if hs_submitted:
             st.session_state.hs_disponibilidad = hs_disponibilidad
             st.success("HS Disponibilidad confirmada.")
+
+
+
+
+
             
 # === 4. EJECUCIÓN DEL PROCESO DE ASIGNACIÓN ===
 if st.button("Iniciar Asignación de Pozos"):
