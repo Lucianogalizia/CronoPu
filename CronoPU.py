@@ -11,39 +11,39 @@ import re
 import streamlit as st  # 🔹 Importar Streamlit
 
 
-# 🏗️ Crear la interfaz en Streamlit
+# Carga del archivo Excel y procesamiento inicial #
+# ──────────────────────────────────────────────#
 st.title("CronoPU - Análisis de Pulling 🚛")
 
-# 📌 Permitir que el usuario suba el archivo Excel
+# Permitir que el usuario suba el archivo Excel
 uploaded_file = st.file_uploader("📂 Subí el archivo Excel con el cronograma", type=["xlsx"])
 
 if uploaded_file is not None:
     try:
-        # ✅ Cargar el archivo Excel subido por el usuario
+        # Cargar el archivo Excel subido
         df = pd.read_excel(uploaded_file)
 
-        # 🔍 Verificar si el archivo tiene datos
+        # Verificar si el archivo tiene datos
         if df.empty:
             st.error("❌ El archivo está vacío. Subí un archivo válido.")
         else:
-            # 🔍 Verificar si tiene las columnas necesarias
-            required_columns = ["NETA [M3/D]", "GEO_LATITUDE", "GEO_LONGITUDE", "TIEMPO PLANIFICADO"]
+            # Verificar si tiene las columnas necesarias
+            required_columns = ["NETA [M3/D]", "GEO_LATITUDE", "GEO_LONGITUDE", "TIEMPO PLANIFICADO", "ZONA"]
             missing_cols = [col for col in required_columns if col not in df.columns]
 
             if missing_cols:
                 st.error(f"❌ Faltan las siguientes columnas en el archivo: {', '.join(missing_cols)}")
             else:
-                # 🔍 Limpieza y conversión optimizada
+                # Limpieza y conversión
                 for col in required_columns:
                     df[col] = pd.to_numeric(df[col].astype(str).str.replace(",", "."), errors='coerce')
+                df.dropna(inplace=True)
 
-                df.dropna(inplace=True)  # Eliminar valores nulos
-
-                # 📊 Mostrar los primeros datos
+                # Mostrar una vista previa
                 st.write("✅ Archivo cargado con éxito:")
-                st.write(df.head())  # Muestra las primeras filas
+                st.write(df.head())
 
-                # <<-- Agrega esta línea para guardar el DataFrame en session_state -->
+                # Guardar el DataFrame en el estado de sesión
                 st.session_state.df = df
 
     except Exception as e:
@@ -68,22 +68,11 @@ else:
         """ Ordena alfabéticamente considerando números y letras correctamente """
         return [int(text) if text.isdigit() else text.lower() for text in re.split(r'(\d+)', s)]
 
-
-
-# 🔹 Función para ordenar correctamente nombres con números y letras
-def natural_sort_key(s):
-    """ Ordena alfabéticamente considerando números y letras correctamente """
-    return [int(text) if text.isdigit() else text.lower() for text in re.split(r'(\d+)', s)]
-
-# === 1. FILTRO POR ZONA Y SELECCIÓN DE N° PULLING ===
-if 'df' in st.session_state:
+if "df" in st.session_state:
     st.header("1. Filtrado de Zonas y Selección de Pulling")
-    
     # Selección de zonas disponibles
     zonas_disponibles = st.session_state.df["ZONA"].unique().tolist()
     zonas_seleccionadas = st.multiselect("Selecciona las zonas:", options=zonas_disponibles)
-else:
-    st.info("Por favor, subí y procesá el archivo Excel para continuar.")
 
 # Selección de cantidad de Pulling
 pulling_count = st.slider("Número de Pulling:", min_value=1, max_value=10, value=3)
@@ -98,7 +87,18 @@ if st.button("Filtrar Zonas"):
         pozos = df_filtrado["POZO"].unique().tolist()
         st.session_state.pozos_disponibles = sorted(pozos)
         st.success(f"Zonas seleccionadas: {', '.join(zonas_seleccionadas)}")
-        
+
+# Aquí podrías agregar un botón para filtrar y guardar en st.session_state.df_filtrado, por ejemplo:
+    if st.button("Filtrar Zonas"):
+        if not zonas_seleccionadas:
+            st.error("❌ Debes seleccionar al menos una zona.")
+        else:
+            df_filtrado = st.session_state.df[st.session_state.df["ZONA"].isin(zonas_seleccionadas)].copy()
+            st.session_state.df_filtrado = df_filtrado  # Guardamos el DataFrame filtrado
+            st.success(f"Zonas seleccionadas: {', '.join(zonas_seleccionadas)}")
+else:
+    st.info("Por favor, subí y procesa un archivo Excel para continuar.")
+
 # === 2. SELECCIÓN DE PULLING (POZOS Y TIEMPO RESTANTE) ===
 if st.session_state.df_filtrado is not None:
     st.header("2. Selección de Pozos para Pulling")
