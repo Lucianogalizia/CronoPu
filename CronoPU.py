@@ -11,41 +11,25 @@ import re
 import streamlit as st  # 🔹 Importar Streamlit
 
 
+# 🏗️ Crear la interfaz en Streamlit
 st.title("CronoPU - Análisis de Pulling 🚛")
-
-# ──────────────────────────────────────────
-# 1. Subir archivo Excel
-# ──────────────────────────────────────────
+ 
+# 📌 Permitir que el usuario suba el archivo Excel
 uploaded_file = st.file_uploader("📂 Subí el archivo Excel con el cronograma", type=["xlsx"])
+ 
+if uploaded_file is not None:
+    try:
+        # ✅ Cargar el archivo Excel subido por el usuario
+        df = pd.read_excel(uploaded_file)
+ 
+        # 🔍 Verificar si el archivo tiene datos
+        if df.empty:
+            st.error("❌ El archivo está vacío. Subí un archivo válido.")
+        else:
+            # 🔍 Verificar si tiene las columnas necesarias
+            required_columns = ["NETA [M3/D]", "GEO_LATITUDE", "GEO_LONGITUDE", "TIEMPO PLANIFICADO"]
+            missing_cols = [col for col in required_columns if col not in df.columns]
 
-if not uploaded_file:
-    # Si no se ha subido archivo, mostramos aviso y detenemos la app
-    st.warning("⚠️ Esperando que subas un archivo Excel para analizar.")
-    st.stop()
-
-# ──────────────────────────────────────────
-# 2. Intentar cargar el archivo
-# ──────────────────────────────────────────
-try:
-    df = pd.read_excel(uploaded_file)
-    if df.empty:
-        st.error("❌ El archivo está vacío. Subí un archivo válido.")
-        st.stop()
-except Exception as e:
-    st.error(f"❌ Error al procesar el archivo: {e}")
-    st.stop()
-
-# ──────────────────────────────────────────
-# 3. Validar columnas requeridas
-# ──────────────────────────────────────────
-required_columns = [
-    "NETA [M3/D]",
-    "GEO_LATITUDE",
-    "GEO_LONGITUDE",
-    "TIEMPO PLANIFICADO",
-    "ZONA",
-    "POZO"
-]
 missing_cols = [col for col in required_columns if col not in df.columns]
 if missing_cols:
     st.error(f"❌ Faltan las siguientes columnas en el archivo: {', '.join(missing_cols)}")
