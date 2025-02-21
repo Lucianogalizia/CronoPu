@@ -69,14 +69,21 @@ st.session_state.df = df
 
 # ──────────────────────────────────────────
 # 5. Sección de Filtrado de Zonas y Pulling
-# ──────────────────────────────────────────
 st.header("1. Filtrado de Zonas y Selección de Pulling")
 
+import re
+def natural_sort_key(s):
+    """ Ordena alfabéticamente considerando números y letras correctamente """
+    return [int(text) if text.isdigit() else text.lower() for text in re.split(r'(\d+)', s)]
+
+# Selección de zonas disponibles
 zonas_disponibles = df["ZONA"].unique().tolist()
 zonas_seleccionadas = st.multiselect("Selecciona las zonas:", options=zonas_disponibles)
 
+# Selección de cantidad de Pulling
 pulling_count = st.slider("Número de Pulling:", min_value=1, max_value=10, value=3)
 
+# Botón para filtrar zonas
 if st.button("Filtrar Zonas"):
     if not zonas_seleccionadas:
         st.error("❌ Debes seleccionar al menos una zona.")
@@ -84,7 +91,8 @@ if st.button("Filtrar Zonas"):
         df_filtrado = df[df["ZONA"].isin(zonas_seleccionadas)].copy()
         st.session_state.df_filtrado = df_filtrado
         pozos = df_filtrado["POZO"].unique().tolist()
-        st.session_state.pozos_disponibles = sorted(pozos)
+        # Ordenamos alfabéticamente con la función de orden natural
+        st.session_state.pozos_disponibles = sorted(pozos, key=natural_sort_key)
         st.success(f"Zonas seleccionadas: {', '.join(zonas_seleccionadas)}")
         st.write(df_filtrado.head())
 
@@ -94,26 +102,10 @@ if st.button("Filtrar Zonas"):
         """ Ordena alfabéticamente considerando números y letras correctamente """
         return [int(text) if text.isdigit() else text.lower() for text in re.split(r'(\d+)', s)]
 
-    # === 1. FILTRO POR ZONA Y SELECCIÓN DE N° PULLING ===
-    st.header("1. Filtrado de Zonas y Selección de Pulling")
-    # Aquí continúa el resto de la lógica...
-    # Selección de zonas disponibles
-    zonas_disponibles = st.session_state.df["ZONA"].unique().tolist()
-    zonas_seleccionadas = st.multiselect("Selecciona las zonas:", options=zonas_disponibles)
-
+    
 # Selección de cantidad de Pulling
 pulling_count = st.slider("Número de Pulling:", min_value=1, max_value=10, value=3)
 
-if st.button("Filtrar Zonas"):
-    if not zonas_seleccionadas:
-        st.error("Debes seleccionar al menos una zona.")
-    else:
-        # Filtrar DataFrame por las zonas seleccionadas y ordenar la lista de pozos
-        df_filtrado = st.session_state.df[st.session_state.df["ZONA"].isin(zonas_seleccionadas)].copy()
-        st.session_state.df_filtrado = df_filtrado
-        pozos = df_filtrado["POZO"].unique().tolist()
-        st.session_state.pozos_disponibles = sorted(pozos)
-        st.success(f"Zonas seleccionadas: {', '.join(zonas_seleccionadas)}")
 
 # === 2. SELECCIÓN DE PULLING (POZOS Y TIEMPO RESTANTE) ===
 if st.session_state.df_filtrado is not None:
