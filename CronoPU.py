@@ -139,14 +139,19 @@ if st.session_state.pulling_data is not None:
             st.subheader("Ingresa la disponibilidad de HS para cada pozo")
             for pozo in st.session_state.pozos_disponibles:
                 # Se asigna un valor por defecto aleatorio entre 1 y 50
-                hs_val = st.number_input(f"{pozo} (HS):", min_value=0.0, value=float(np.random.randint(1, 51)), key=f"hs_{pozo}")
+                hs_val = st.number_input(
+                    f"{pozo} (HS):",
+                    min_value=0.0,
+                    value=float(np.random.randint(1, 51)),
+                    key=f"hs_{pozo}"
+                )
                 hs_disponibilidad[pozo] = hs_val
             hs_submitted = st.form_submit_button("Confirmar HS Disponibilidad")
         if hs_submitted:
             st.session_state.hs_disponibilidad = hs_disponibilidad
             st.success("HS Disponibilidad confirmada.")
 
- ejecutar_proceso()
+ejecutar_proceso()
 
 # === 4. EJECUCIÓN DEL PROCESO DE ASIGNACIÓN ===
 def ejecutar_proceso():
