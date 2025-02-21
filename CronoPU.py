@@ -128,15 +128,18 @@ if zona_seleccionada:
             seleccionados = [(pozo, *calcular_coeficiente(pozo_actual, pozo)) for pozo in pozos_disponibles if pozo not in pozos_ocupados]
             seleccionados.sort(key=lambda x: (-x[1], x[2]))
             seleccionados = seleccionados[:3]
-            
+
+
+            seleccion_n1 = seleccionados[0] if seleccionados else ("N/A", 0, 0)
+            seleccion_n2 = seleccionados[1] if len(seleccionados) > 1 else ("N/A", 0, 0)
+            seleccion_n3 = seleccionados[2] if len(seleccionados) > 2 else ("N/A", 0, 0)
+         
             recomendacion = "Continuar en pozo actual" if len(seleccionados) == 0 else "Abandonar pozo y moverse al mejor candidato"
+
             matriz_prioridad.append([
                 pulling, pozo_actual, neta_actual, tiempo_restante,
-                *seleccionados[0] if seleccionados else ("N/A", 0, 0),
-                *seleccionados[1] if len(seleccionados) > 1 else ("N/A", 0, 0),
-                *seleccionados[2] if len(seleccionados) > 2 else ("N/A", 0, 0),
-                recomendacion
-            ])
+                *seleccion_n1, *seleccion_n2, *seleccion_n3,
+                         
         
         columns = [
             "Pulling", "Pozo Actual", "Neta Actual", "Tiempo Restante (h)",
