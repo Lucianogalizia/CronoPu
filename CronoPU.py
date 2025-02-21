@@ -103,10 +103,6 @@ if st.button("Filtrar Zonas"):
         return [int(text) if text.isdigit() else text.lower() for text in re.split(r'(\d+)', s)]
 
     
-# Selección de cantidad de Pulling
-pulling_count = st.slider("Número de Pulling:", min_value=1, max_value=10, value=3)
-
-
 # === 2. SELECCIÓN DE PULLING (POZOS Y TIEMPO RESTANTE) ===
 if st.session_state.df_filtrado is not None:
     st.header("2. Selección de Pozos para Pulling")
