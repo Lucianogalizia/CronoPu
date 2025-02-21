@@ -258,8 +258,8 @@ if st.button("Iniciar Asignación de Pozos"):
              "N+3", "Coeficiente N+3", "Distancia N+3 (km)", "Recomendación"
          ]
     
-    df_prioridad = pd.DataFrame(matriz_prioridad, columns=columns)
-    st.session_state.df_prioridad = df_prioridad
-    st.success("Proceso de asignación completado.")
-    st.dataframe(df_prioridad)
+        df_prioridad = pd.DataFrame(matriz_prioridad, columns=columns)
+        st.session_state.df_prioridad = df_prioridad
+        st.success("Proceso de asignación completado.")
+        st.dataframe(df_prioridad)
     
