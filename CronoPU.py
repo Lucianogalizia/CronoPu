@@ -69,8 +69,8 @@ st.session_state.df = df
 
 # === 1. FILTRO POR ZONA Y SELECCIÓN DE N° PULLING ===
 st.header("1. Filtrado de Zonas y Selección de Pulling")
-    # Aquí continúa el resto de la lógica...
-    # Selección de zonas disponibles
+# Aquí continúa el resto de la lógica...
+# Selección de zonas disponibles
 zonas_disponibles = st.session_state.df["ZONA"].unique().tolist()
 zonas_seleccionadas = st.multiselect("Selecciona las zonas:", options=zonas_disponibles)
  
@@ -128,6 +128,7 @@ if st.session_state.df_filtrado is not None:
             st.success("Selección de Pulling confirmada.")
  
 # === 3. INGRESO DE HS DISPONIBILIDAD ===
+# === 3. INGRESO DE HS DISPONIBILIDAD ===
 if st.session_state.pulling_data is not None:
     st.header("3. Ingreso de HS Disponibilidad de Equipo")
     
@@ -138,7 +139,6 @@ if st.session_state.pulling_data is not None:
         with st.form("form_hs"):
             st.subheader("Ingresa la disponibilidad de HS para cada pozo")
             for pozo in st.session_state.pozos_disponibles:
-                # Se asigna un valor por defecto aleatorio entre 1 y 50
                 hs_val = st.number_input(
                     f"{pozo} (HS):",
                     min_value=0.0,
@@ -151,6 +151,7 @@ if st.session_state.pulling_data is not None:
             st.session_state.hs_disponibilidad = hs_disponibilidad
             st.success("HS Disponibilidad confirmada.")
 
+# La llamada debe estar sin indentación extra:
 ejecutar_proceso()
 
 # === 4. EJECUCIÓN DEL PROCESO DE ASIGNACIÓN ===
