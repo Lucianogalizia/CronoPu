@@ -67,42 +67,27 @@ df.dropna(inplace=True)
 st.session_state.df = df
 
 
-# ──────────────────────────────────────────
-# 5. Sección de Filtrado de Zonas y Pulling
-st.header("1. Filtrado de Zonas y Selección de Pulling")
-
-import re
-def natural_sort_key(s):
-    """ Ordena alfabéticamente considerando números y letras correctamente """
-    return [int(text) if text.isdigit() else text.lower() for text in re.split(r'(\d+)', s)]
-
-# Selección de zonas disponibles
-zonas_disponibles = df["ZONA"].unique().tolist()
-zonas_seleccionadas = st.multiselect("Selecciona las zonas:", options=zonas_disponibles)
-
+# === 1. FILTRO POR ZONA Y SELECCIÓN DE N° PULLING ===
+    st.header("1. Filtrado de Zonas y Selección de Pulling")
+    # Aquí continúa el resto de la lógica...
+    # Selección de zonas disponibles
+    zonas_disponibles = st.session_state.df["ZONA"].unique().tolist()
+    zonas_seleccionadas = st.multiselect("Selecciona las zonas:", options=zonas_disponibles)
+ 
 # Selección de cantidad de Pulling
 pulling_count = st.slider("Número de Pulling:", min_value=1, max_value=10, value=3)
-
-# Botón para filtrar zonas
+ 
 if st.button("Filtrar Zonas"):
     if not zonas_seleccionadas:
-        st.error("❌ Debes seleccionar al menos una zona.")
+        st.error("Debes seleccionar al menos una zona.")
     else:
-        df_filtrado = df[df["ZONA"].isin(zonas_seleccionadas)].copy()
+        # Filtrar DataFrame por las zonas seleccionadas y ordenar la lista de pozos
+        df_filtrado = st.session_state.df[st.session_state.df["ZONA"].isin(zonas_seleccionadas)].copy()
         st.session_state.df_filtrado = df_filtrado
         pozos = df_filtrado["POZO"].unique().tolist()
-        # Ordenamos alfabéticamente con la función de orden natural
-        st.session_state.pozos_disponibles = sorted(pozos, key=natural_sort_key)
+        st.session_state.pozos_disponibles = sorted(pozos)
         st.success(f"Zonas seleccionadas: {', '.join(zonas_seleccionadas)}")
-        st.write(df_filtrado.head())
-
-    # 🔹 Función para ordenar correctamente nombres con números y letras
-    import re
-    def natural_sort_key(s):
-        """ Ordena alfabéticamente considerando números y letras correctamente """
-        return [int(text) if text.isdigit() else text.lower() for text in re.split(r'(\d+)', s)]
-
-    
+ 
 # === 2. SELECCIÓN DE PULLING (POZOS Y TIEMPO RESTANTE) ===
 if st.session_state.df_filtrado is not None:
     st.header("2. Selección de Pozos para Pulling")
@@ -141,7 +126,7 @@ if st.session_state.df_filtrado is not None:
             todos_pozos = st.session_state.df_filtrado["POZO"].unique().tolist()
             st.session_state.pozos_disponibles = sorted([p for p in todos_pozos if p not in seleccionados])
             st.success("Selección de Pulling confirmada.")
-
+ 
 # === 3. INGRESO DE HS DISPONIBILIDAD ===
 if st.session_state.pulling_data is not None:
     st.header("3. Ingreso de HS Disponibilidad de Equipo")
@@ -160,7 +145,7 @@ if st.session_state.pulling_data is not None:
         if hs_submitted:
             st.session_state.hs_disponibilidad = hs_disponibilidad
             st.success("HS Disponibilidad confirmada.")
-
+ 
 # === 4. EJECUCIÓN DEL PROCESO DE ASIGNACIÓN ===
 def ejecutar_proceso():
     """Función que ejecuta la asignación de pozos y genera la matriz de prioridad."""
@@ -212,7 +197,7 @@ def ejecutar_proceso():
             else:
                 st.warning(f"⚠️ No hay pozos disponibles para asignar como {nivel} en {pulling}.")
         return pulling_asignaciones
-
+ 
     # Inicializar asignaciones para cada pulling
     pulling_asignaciones = {pulling: [] for pulling, _ in pulling_lista}
     # Se asignan tres rondas (N+1, N+2, N+3)
@@ -260,8 +245,4 @@ def ejecutar_proceso():
     st.success("Proceso de asignación completado.")
     st.dataframe(df_prioridad)
 
-if st.session_state.hs_disponibilidad is not None:
-    st.header("4. Ejecutar Proceso")
-    if st.button("Ejecutar Proceso de Asignación"):
-        ejecutar_proceso()
 
