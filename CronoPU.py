@@ -68,7 +68,6 @@ else:
         """ Ordena alfabéticamente considerando números y letras correctamente """
         return [int(text) if text.isdigit() else text.lower() for text in re.split(r'(\d+)', s)]
 
-df.dropna(inplace=True)  # Eliminar valores nulos
 
 
 # 🔹 Función para ordenar correctamente nombres con números y letras
