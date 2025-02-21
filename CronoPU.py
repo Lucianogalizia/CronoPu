@@ -166,15 +166,14 @@ if st.button("Iniciar Asignación de Pozos"):
         st.error("Debes confirmar la disponibilidad de HS antes de continuar.")
     else:
         def ejecutar_proceso():
-         """Función que ejecuta la asignación de pozos y genera la matriz de prioridad."""
-         matriz_prioridad = []
-         pozos_ocupados = set()
-         pulling_lista = list(st.session_state.pulling_data.items())
-         
+            """Función que ejecuta la asignación de pozos y genera la matriz de prioridad."""
+            matriz_prioridad = []
+            pozos_ocupados = set()
+            pulling_lista = list(st.session_state.pulling_data.items())
+            
             # Función que calcula el coeficiente y la distancia entre dos pozos
             def calcular_coeficiente(pozo_referencia, pozo_candidato):
                 hs_disp_equipo = st.session_state.hs_disponibilidad.get(pozo_candidato, 0)
-                # Obtener coordenadas de ambos pozos (usando el DataFrame original)
                 registro_ref = st.session_state.df.loc[st.session_state.df["POZO"] == pozo_referencia].iloc[0]
                 registro_cand = st.session_state.df.loc[st.session_state.df["POZO"] == pozo_candidato].iloc[0]
                 distancia = geodesic(
@@ -192,19 +191,15 @@ if st.button("Iniciar Asignación de Pozos"):
                 for pulling, data in pulling_lista:
                     # Para el primer candidato se usa el pozo actual o el último asignado
                     pozo_referencia = pulling_asignaciones[pulling][-1][0] if pulling_asignaciones[pulling] else data["pozo"]
-                    # Seleccionar candidatos que cumplan la condición de disponibilidad de HS
                     candidatos = []
                     for pozo in no_asignados:
-                        # Sumar los tiempos planificados de los pozos ya asignados en este pulling
                         tiempo_acumulado = sum(
                             st.session_state.df.loc[st.session_state.df["POZO"] == p[0], "TIEMPO PLANIFICADO"].iloc[0]
                             for p in pulling_asignaciones[pulling]
                         )
-                        # Condición: la disponibilidad de HS debe ser menor o igual al tiempo restante + tiempo acumulado
                         if st.session_state.hs_disponibilidad.get(pozo, 0) <= (data["tiempo_restante"] + tiempo_acumulado):
                             coef, dist = calcular_coeficiente(pozo_referencia, pozo)
                             candidatos.append((pozo, coef, dist))
-                    # Ordenar candidatos: mayor coeficiente y menor distancia
                     candidatos.sort(key=lambda x: (-x[1], x[2]))
                     if candidatos:
                         mejor_candidato = candidatos[0]
@@ -218,7 +213,6 @@ if st.button("Iniciar Asignación de Pozos"):
          
             # Inicializar asignaciones para cada pulling
             pulling_asignaciones = {pulling: [] for pulling, _ in pulling_lista}
-            # Se asignan tres rondas (N+1, N+2, N+3)
             pulling_asignaciones = asignar_pozos(pulling_asignaciones, "N+1")
             pulling_asignaciones = asignar_pozos(pulling_asignaciones, "N+2")
             pulling_asignaciones = asignar_pozos(pulling_asignaciones, "N+3")
@@ -229,17 +223,15 @@ if st.button("Iniciar Asignación de Pozos"):
                 registro_actual = st.session_state.df.loc[st.session_state.df["POZO"] == pozo_actual].iloc[0]
                 neta_actual = registro_actual["NETA [M3/D]"]
                 tiempo_restante = data["tiempo_restante"]
-                # Se toman los tres primeros candidatos asignados
                 seleccionados = pulling_asignaciones.get(pulling, [])[:3]
-                # Si hay menos de tres candidatos, se agregan valores por defecto para evitar errores
                 while len(seleccionados) < 3:
                     seleccionados.append(("N/A", 1, 1))
                 
-                # Validación de tiempo planificado para el primer candidato (N+1)
-                tiempo_planificado_n1 = st.session_state.df.loc[st.session_state.df["POZO"] == seleccionados[0][0], "TIEMPO PLANIFICADO"]
+                tiempo_planificado_n1 = st.session_state.df.loc[
+                    st.session_state.df["POZO"] == seleccionados[0][0], "TIEMPO PLANIFICADO"
+                ]
                 tiempo_planificado_n1 = tiempo_planificado_n1.iloc[0] if not tiempo_planificado_n1.empty else 1
                 
-                # Cálculo de suspensión y recomendación
                 suspension = (neta_actual / seleccionados[0][1]) * (seleccionados[0][2] * 0.5 + tiempo_planificado_n1)
                 recomendacion = "Abandonar pozo actual y moverse al N+1" if (neta_actual / tiempo_restante) < suspension else "Continuar en pozo actual"
                 
@@ -257,9 +249,12 @@ if st.button("Iniciar Asignación de Pozos"):
                 "N+2", "Coeficiente N+2", "Distancia N+2 (km)",
                 "N+3", "Coeficiente N+3", "Distancia N+3 (km)", "Recomendación"
             ]
-       
-           df_prioridad = pd.DataFrame(matriz_prioridad, columns=columns)
-           st.session_state.df_prioridad = df_prioridad
-           st.success("Proceso de asignación completado.")
-           st.dataframe(df_prioridad)
+        
+            df_prioridad = pd.DataFrame(matriz_prioridad, columns=columns)
+            st.session_state.df_prioridad = df_prioridad
+            st.success("Proceso de asignación completado.")
+            st.dataframe(df_prioridad)
+        
+        # La llamada a la función se realiza fuera de su definición
+        ejecutar_proceso()
     
