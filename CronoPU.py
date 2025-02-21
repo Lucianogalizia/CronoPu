@@ -13,7 +13,17 @@ import streamlit as st  # 🔹 Importar Streamlit
 
 # 🏗️ Crear la interfaz en Streamlit
 st.title("CronoPU - Análisis de Pulling 🚛")
- 
+
+# Inicialización de variables en session_state (si no existen aún)
+if "df_filtrado" not in st.session_state:
+    st.session_state.df_filtrado = None
+if "pulling_data" not in st.session_state:
+    st.session_state.pulling_data = None
+if "pozos_disponibles" not in st.session_state:
+    st.session_state.pozos_disponibles = []
+if "hs_disponibilidad" not in st.session_state:
+    st.session_state.hs_disponibilidad = {}
+
 # 📌 Permitir que el usuario suba el archivo Excel
 uploaded_file = st.file_uploader("📂 Subí el archivo Excel con el cronograma", type=["xlsx"])
  
