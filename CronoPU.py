@@ -146,7 +146,7 @@ if st.session_state.pulling_data is not None:
             st.session_state.hs_disponibilidad = hs_disponibilidad
             st.success("HS Disponibilidad confirmada.")
 
-        ejecutar_proceso()
+ ejecutar_proceso()
 
 # === 4. EJECUCIÓN DEL PROCESO DE ASIGNACIÓN ===
 def ejecutar_proceso():
