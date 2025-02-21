@@ -66,9 +66,6 @@ df.dropna(inplace=True)
 # Guardar el DataFrame en session_state
 st.session_state.df = df
 
-# Mostrar una vista previa
-st.success("✅ Archivo cargado con éxito")
-st.write(df.head())
 
 # ──────────────────────────────────────────
 # 5. Sección de Filtrado de Zonas y Pulling
