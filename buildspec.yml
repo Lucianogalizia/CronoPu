@@ -7,6 +7,11 @@ phases:
     commands:
       - pip install --upgrade pip
       - pip install -r requirements.txt
+
+  build:
+    commands:
+      - streamlit run CronoPU.py --server.headless true
+
 artifacts:
   files:
     - '**/*'
