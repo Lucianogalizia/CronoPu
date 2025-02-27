@@ -31,42 +31,31 @@ uploaded_file = st.file_uploader("📂 Subí el archivo Excel con el cronograma"
  
 if uploaded_file is not None:
     try:
-        # ✅ Cargar el archivo Excel subido por el usuario
+        # Cargar el archivo Excel
         df = pd.read_excel(uploaded_file)
 
-        # 🔍 Verificar si el archivo tiene datos
+        # Verificar si el archivo tiene datos
         if df.empty:
             st.error("❌ El archivo está vacío. Subí un archivo válido.")
             st.stop()
         else:
-            # 🔍 Verificar si tiene las columnas necesarias
-            required_columns = ["NETA [M3/D]", "GEO_LATITUDE", "GEO_LONGITUDE", "TIEMPO PLANIFICADO"]
-            missing_cols = [col for col in required_columns if col not in df.columns]
-
-            if missing_cols:
-                st.error(f"❌ Faltan las siguientes columnas en el archivo: {', '.join(missing_cols)}")
-                st.stop()
-
-            # 🔍 Limpieza y conversión optimizada
+            # Realizar las conversiones y validaciones
             for col in required_columns:
                 df[col] = pd.to_numeric(df[col].astype(str).str.replace(",", "."), errors='coerce')
 
+            # Asegúrate de que df sea procesado aquí
             df.dropna(inplace=True)  # Eliminar valores nulos
 
-            # 📊 Mostrar los primeros datos
+            # Mostrar los primeros datos
             st.write("✅ Archivo cargado con éxito:")
-            st.write(df.head())  # Muestra las primeras filas
+            st.write(df.head())
 
-            # Guardar el DataFrame en session_state
+            # Guardar en session_state
             st.session_state.df = df
 
     except Exception as e:
         st.error(f"❌ Error al procesar el archivo: {e}")
-        st.stop()  # Detener ejecución si hay un error grave
-
-else:
-    st.warning("⚠️ Esperando que subas un archivo Excel para analizar.")
-    st.stop()
+        st.stop()
 
 # ──────────────────────────────────────────
 # 4. Limpieza y conversión de datos
