@@ -1,17 +1,18 @@
 version: 0.2
-
 phases:
   install:
     runtime-versions:
       python: 3.8
     commands:
-      - pip install --upgrade pip
-      - pip install -r requirements.txt
-
+      # Instalar las dependencias necesarias, incluyendo Streamlit y cualquier otra librería
+      echo "Instalando dependencias..."
+      pip install -r requirements.txt
   build:
     commands:
-      - streamlit run CronoPU.py --server.headless true
-
+      # Ejecutar Streamlit (usando 'streamlit run' para iniciar la aplicación)
+      echo "Ejecutando Streamlit..."
+      streamlit run CronoPU.py
 artifacts:
   files:
     - '**/*'
+
