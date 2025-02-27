@@ -10,6 +10,8 @@ from IPython.display import display
 import re
 import streamlit as st  # 🔹 Importar Streamlit
 
+required_columns = ["NETA [M3/D]", "GEO_LATITUDE", "GEO_LONGITUDE", "TIEMPO PLANIFICADO"]
+
 
 # 🏗️ Crear la interfaz en Streamlit
 st.title("CronoPU - Análisis de Pulling 🚛")
