@@ -1,18 +1,21 @@
 version: 0.2
+
 phases:
   install:
     runtime-versions:
-      python: 3.8
+      python: 3.9
     commands:
-      # Instalar las dependencias necesarias, incluyendo Streamlit y cualquier otra librería
-      echo "Instalando dependencias..."
-      pip install -r requirements.txt
+      - echo "Instalando dependencias..."
+      - pip install --upgrade pip
+      - pip install -r requirements.txt
+      
   build:
     commands:
-      # Ejecutar Streamlit (usando 'streamlit run' para iniciar la aplicación)
-      echo "Ejecutando Streamlit..."
-      streamlit run CronoPU.py
+      - echo "Ejecutando Streamlit..."
+      - nohup streamlit run CronoPU.py --server.port 8501 --server.enableCORS false --server.enableXsrfProtection false &
+
 artifacts:
   files:
     - '**/*'
+
 
